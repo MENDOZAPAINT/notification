@@ -1,0 +1,113 @@
+<?php
+
+namespace App\Events;
+
+use App\Models\Venta;
+use Illuminate\Broadcasting\Channel;
+use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PresenceChannel;
+use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Queue\SerializesModels;
+
+class NotificationEvent implements ShouldBroadcast
+{
+   use Dispatchable, InteractsWithSockets, SerializesModels;
+
+   public $venta;
+
+   public function __construct(Venta $venta) 
+   {
+       $this->venta = $venta;
+   }
+
+   public function broadcastOn(): Channel
+   {
+       return new Channel('ventas');
+   }
+
+   public function broadcastWith(): array
+   {
+       return [
+           'id' => $this->venta->id,
+           'title' => $this->venta->title,
+           'description' => $this->venta->description,
+           'created_at' => $this->venta->created_at->format('Y-m-d H:i:s')
+       ];
+   }
+
+   public function broadcastAs(): string
+   {
+       return 'nueva-venta';
+   }
+}
+
+
+
+
+    <div id="ventas-list" class="space-y-4">
+
+        @push('scripts')
+            <script>
+                // resources/js/notifications.js
+                document.addEventListener('DOMContentLoaded', function() {
+                    Echo.channel('ventas')
+                        .listen('.nueva-venta', (event) => {
+                            // Crear notificación usando SweetAlert2
+                            Swal.fire({
+                                title: 'Nueva Venta',
+                                html: `
+                    <div class="text-left">
+                        <p><strong>Título:</strong> ${event.title}</p>
+                        <p><strong>Descripción:</strong> ${event.description}</p>
+                        <p><strong>Fecha:</strong> ${event.created_at}</p>
+                    </div>
+                `,
+                                icon: 'success',
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 5000,
+                                timerProgressBar: true
+                            });
+
+                            // Actualizar la lista de ventas si existe en la página
+                            updateVentasList(event);
+                        });
+                });
+
+                function updateVentasList(venta) {
+                    const ventasList = document.getElementById('ventas-list');
+                    if (ventasList) {
+                        const newItem = document.createElement('div');
+                        newItem.className = 'venta-item bg-white shadow rounded-lg p-4 mb-4';
+                        newItem.innerHTML = `
+            <h3 class="text-lg font-semibold">${venta.title}</h3>
+            <p class="text-gray-600">${venta.description}</p>
+            <p class="text-sm text-gray-500">${venta.created_at}</p>
+        `;
+                        ventasList.insertBefore(newItem, ventasList.firstChild);
+                        newItem.style.animation = 'slideIn 0.3s ease-out';
+                    }
+                }
+            </script>
+        @endpush
+
+
+
+
+
+        <?php
+
+use Illuminate\Support\Facades\Broadcast;
+
+Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
+    return (int) $user->id === (int) $id;
+});
+
+Broadcast::channel('notifications.{id}', function ($user, $id) {
+    return (int) $user->id === (int) $id;
+});
+
+
