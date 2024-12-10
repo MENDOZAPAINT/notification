@@ -74,49 +74,36 @@
         </script>
     @endpush
 
-
-
-
-
-
     @push('scripts')
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const userRole = '{{ Auth::user()->role }}';
-                const userId = '{{ Auth::id() }}';
-                const notificationContainer = document.createElement('div');
-                notificationContainer.className = 'fixed top-4 right-4 z-50';
-                document.body.appendChild(notificationContainer);
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const userId = '{{ Auth::id() }}';
+        const notificationContainer = document.createElement('div');
+        notificationContainer.className = 'fixed top-4 right-4 z-50';
+        document.body.appendChild(notificationContainer);
 
-                const renderButton = (count) => {
-                    notificationContainer.innerHTML = `
-                    <x-button
-                        count="${count}"
-                        size="lg"
-                        color="#0066CC"
-                    ></x-button>
-                    `;
-                };
+        let currentCount = {{ \App\Models\Venta::count() }};
 
-                if (userRole === 'admin') {
-                    renderButton({{ \App\Models\Venta::count() }});
-                    window.Echo.private(`venta_notifications.${userId}`)
-                        .listen('.nueva-venta', (event) => renderButton(event.count));
-                } else if (userRole === null) {
-                    const userVentaCount = {{ \App\Models\Venta::where('user_id', Auth::id())->count() }};
-                    renderButton(userVentaCount);
-                    window.Echo.private(`venta_notifications.${userId}`)
-                        .listen('.nueva-venta', (event) => renderButton(event.count)); // Corrected to use event.count
-                } else {
-                    console.error('Usuario no reconocido');
-                }
-            });
-        </script>
-    @endpush
+        const renderButton = (newCount = currentCount) => {
+            currentCount = Math.max(0, parseInt(newCount) || currentCount);
+            notificationContainer.innerHTML = `
+                <x-button
+                    count="${currentCount}"
+                    size="lg"
+                    color="#0066CC"
+                ></x-button>
+            `;
+        };
+
+        window.Echo.private(`venta_notifications.${userId}`)
+            .listen('.nueva-venta', ({ count }) => renderButton(count));
+
+        renderButton();
+    });
+</script>
+@endpush
 
 </x-app-layout>
-
-
 
 {{-- 
 

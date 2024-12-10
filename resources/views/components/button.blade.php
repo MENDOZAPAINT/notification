@@ -1,6 +1,6 @@
 {{-- resources/views/components/button.blade.php --}}
 @props([
-    'count'=>0,
+    'count' => 0,
     'size' => 'md',
     'color' => '#2196F3',
 ])
@@ -26,7 +26,7 @@
         
         <!-- Notification Badge -->
         <circle cx="17" cy="7" r="5" fill="#f44336" />
-        <text x="17" y="8.5" text-anchor="middle" fill="white" font-size="6" font-family="Arial, sans-serif"
-            font-weight="bold">{{ $count }}</text>
+        <text x="17" y="9" text-anchor="middle" fill="white" font-size="8" font-family="Arial, sans-serif"
+            dominant-baseline="middle">{{ $count }}</text>
     </svg>
 </div>
